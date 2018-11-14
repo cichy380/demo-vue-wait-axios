@@ -20,9 +20,15 @@
 
         <div v-for="error in errors" :key="error" class="alert alert-danger mb-1">{{ error }}</div>
 
-        <p v-show="!$wait.is('todos')">
+        <p v-show="!$wait.any">
             <button v-if="todos.length === 0" @click="getAllTodos" class="btn btn-primary">Get todos</button>
             <button v-if="todos.length" @click="clear" class="btn btn-danger">Remove todos</button>
+        </p>
+
+        <p v-show="$wait.any">
+            <button @click="cancel" class="btn btn-danger">
+                Stop loading!
+            </button>
         </p>
 
         <div class="list-group">
@@ -32,7 +38,8 @@
                  class="list-group-item flex-column align-items-start">
                 <strong>{{ item.title }}</strong><br>
                 <small>
-                    User: {{ item.userName }} <em v-if="!item.userName" class="color-animation">loading...</em>
+                    User: {{ item.userName }}
+                    <em v-if="$wait.waiting('user.todo-' + item.id)" class="color-animation">loading...</em>
                 </small>
             </div>
         </div>
@@ -41,6 +48,9 @@
 
 <script>
     import axios from 'axios'
+
+    const todosUrl = 'https://jsonplaceholder.typicode.com/todos'
+    const usersUrl = 'https://jsonplaceholder.typicode.com/users'
 
     export default {
         data () {
@@ -55,8 +65,6 @@
         methods: {
             // Fetches all todos
             getAllTodos () {
-                let randomValue = Math.random()
-                let url = `https://jsonplaceholder.typicode.com/todos?rand=${randomValue}`
                 let CancelToken = axios.CancelToken
                 let source = CancelToken.source()
                 this.axiosTokenSources.push(source)
@@ -64,17 +72,17 @@
                 // start waiting
                 this.$wait.start('todos')
 
-                axios.get(url, {cancelToken: source.token})
+                axios.get(`${todosUrl}?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
                         response.data.forEach((item) => {
                             item.userName = ''
                             this.todos.push(item)
                         })
-                        this.usersUpdate()
+                        this.getAllUsres()
                     })
                     .catch(e => { // handle error
                         if (!axios.isCancel(e)) {
-                            this.errors.push(`ERROR while get Todos<br>Message: ${e.message}`)
+                            this.errors.push(`ERROR while get Todos. Message: ${e.message}`)
                         }
                     })
                     .then(() => { // always executed
@@ -86,41 +94,48 @@
             clear () {
                 this.todos = []
                 this.users = []
+                this.cancel()
+            },
+
+            cancel () {
                 this.axiosTokenSources.forEach((source) => {
                     source.cancel()
                 })
             },
 
-            usersUpdate () {
+            getUser (todo) {
+                let CancelToken = axios.CancelToken
+                let source = CancelToken.source()
+                this.axiosTokenSources.push(source)
+
+                // start waiting
+                this.$wait.start(`user.todo-${todo.id}`)
+
+                axios.get(`${usersUrl}/${todo.userId}?rand=${Math.random()}`, {cancelToken: source.token})
+                    .then(response => { // handle success
+                        todo.userName = response.data.name
+                        this.users.push(response.data)
+                    })
+                    .catch(e => { // handle error
+                        if (!axios.isCancel(e)) {
+                            this.errors.push(`ERROR while get User (id: ${todo.userId}). Message: ${e.message}`)
+                        }
+                    })
+                    .then(() => { // always executed
+                        // stop waiting
+                        this.$wait.end(`user.todo-${todo.id}`)
+                    })
+            },
+
+            getAllUsres () {
                 this.todos.forEach((item) => {
                     if (item.userId) {
-                        let randomValue = Math.random()
-                        let url = `https://jsonplaceholder.typicode.com/users/${item.userId}?rand=${randomValue}`
-                        let CancelToken = axios.CancelToken
-                        let source = CancelToken.source()
-                        this.axiosTokenSources.push(source)
-
-                        // start waiting
-                        this.$wait.start(`user.${item.userId}-${randomValue}`)
-
-                        axios.get(url, {cancelToken: source.token})
-                            .then(response => { // handle success
-                                item.userName = response.data.name
-                                this.users.push(response.data)
-                            })
-                            .catch(e => { // handle error
-                                if (!axios.isCancel(e)) {
-                                    this.errors.push(`ERROR while get User (id: ${item.userId})<br>Message: ${e.message}`)
-                                }
-                            })
-                            .then(() => { // always executed
-                                // stop waiting
-                                this.$wait.end(`user.${item.userId}-${randomValue}`)
-                            })
+                        this.getUser(item)
                     }
                 })
             }
         },
+
         beforeRouteLeave (to, from, next) {
             this.clear()
             next()

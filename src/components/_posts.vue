@@ -20,12 +20,22 @@
 
         <div v-for="error in errors" :key="error" class="alert alert-danger mb-1">{{ error }}</div>
 
-        <p v-show="!$wait.is('posts')">
-            <button v-if="posts.length === 0" @click="getAllPosts" class="btn btn-primary">Get posts</button>
+        <p v-show="!$wait.any">
+            <button v-if="posts.length === 0" @click="getAllPosts" class="btn btn-primary">
+                Get posts
+            </button>
             <button v-if="posts.length && comments.length === 0" @click="getAllComments" class="btn btn-primary">
                 Show all comments
             </button>
-            <button v-if="posts.length" @click="clear" class="btn btn-danger">Remove posts</button>
+            <button v-if="posts.length" @click="clear" class="btn btn-danger">
+                Remove posts
+            </button>
+        </p>
+
+        <p v-show="$wait.any">
+            <button @click="cancel" class="btn btn-danger">
+                Stop loading!
+            </button>
         </p>
 
         <div class="list-group">
@@ -45,7 +55,7 @@
                                 v-if="post.comments.length === 0"
                                 class="btn btn-outline-secondary btn-sm ml-1">show</button>
                     </p>
-                    <div class="color-animation" v-if="$wait.is('comments.post-' + post.id)">Loading comments...</div>
+                    <div class="color-animation" v-if="$wait.waiting('comments.post-' + post.id)">Loading comments...</div>
                     <div class="list-group small">
                         <div v-for="comment in post.comments"
                              :key="comment.id"
@@ -111,6 +121,10 @@
             clear () {
                 this.posts = []
                 this.comments = []
+                this.cancel()
+            },
+
+            cancel () {
                 this.axiosTokenSources.forEach((source) => {
                     source.cancel()
                 })
