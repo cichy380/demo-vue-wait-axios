@@ -9,6 +9,12 @@
   <style>
     .shadow-none {text-shadow: none; box-shadow: none; }
     .scroll {overflow-y: scroll; }
+    .tiny {font-size: 50%; }
+    .color-animation {animation: colorchange .5s infinite alternate; }
+    @keyframes colorchange {
+      from { color: #999; }
+      to { color: #222; }
+    }
   </style>
 </head>
 <body class="shadow-none scroll">
