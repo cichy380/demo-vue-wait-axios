@@ -1,9 +1,15 @@
-# Pomodoro
+# vue-wait and axios
 
-Application inspired with examples from 
-"[Learning Vue.js 2](https://books.google.pl/books/about/vue.html?id=nszcDgAAQBAJ)" book and 
-[pomodoro technique](http://pomodorotechnique.com). Original application (described in the book) is available on 
-[chudaol](https://github.com/chudaol) / [Pomodoro](https://github.com/chudaol/Pomodoro).
+Sample usage of Multiple Process Loader Management for Vue and promise based HTTP client. Online REST API for 
+Testing and Prototyping Serving is delivered by JSONPlaceholder.
+
+## Tech stack
+
+ * **[vue-wait](https://github.com/f/vue-wait)** - complex Loader and Progress Management for Vue Applications
+ * [axios](https://github.com/axios/axios) - promise based HTTP client
+ * [JSONPlaceholder](https://jsonplaceholder.typicode.com/) - fake Online REST API for Testing and Prototyping
+ * [vue-webpack-boilerplate](https://github.com/vuejs-templates/webpack) - template for vue-cli
+ * [Bootstrap](https://getbootstrap.com/) - front-end component library
 
 ## Build Setup
 
