@@ -5,6 +5,7 @@
         <h3 class="masthead-brand"><router-link to="/">Demo</router-link></h3>
         <nav class="nav nav-masthead justify-content-center">
           <router-link to="/posts" class="nav-item nav-link">Posts</router-link>
+          <router-link to="/todos" class="nav-item nav-link">Todos</router-link>
         </nav>
       </div>
     </header>
