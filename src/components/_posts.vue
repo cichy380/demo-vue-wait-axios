@@ -13,16 +13,16 @@
         <v-wait for="user.*">
             <template slot="waiting">
                 <p class="color-animation">
-                    Loading users...
+                    Loading users ({{ users.length }} items)...
                 </p>
             </template>
         </v-wait>
 
         <div v-for="error in errors" :key="error" class="alert alert-danger mb-1">{{ error }}</div>
 
-        <p>
+        <p v-show="!$wait.is('posts')">
             <button v-if="posts.length === 0" @click="getAllPosts" class="btn btn-primary">Get posts</button>
-            <button v-if="posts.length" @click="posts=[]" class="btn btn-danger">Remove posts</button>
+            <button v-if="posts.length" @click="clear" class="btn btn-danger">Remove posts</button>
         </p>
 
         <div class="list-group">
@@ -49,19 +49,29 @@
         data () {
             return {
                 posts: [],
-                errors: []
+                users: [],
+                errors: [],
+                axiosTokenSources: []
             }
+        },
+
+        mounted: function () {
+            this.getAllPosts()
         },
 
         methods: {
             // Fetches all posts
             getAllPosts () {
                 let randomValue = Math.random()
+                let url = `https://jsonplaceholder.typicode.com/posts?rand=${randomValue}`
+                let CancelToken = axios.CancelToken
+                let source = CancelToken.source()
+                this.axiosTokenSources.push(source)
 
                 // start waiting
                 this.$wait.start('posts')
 
-                axios.get(`http://jsonplaceholder.typicode.com/posts?rand=${randomValue}`)
+                axios.get(url, {cancelToken: source.token})
                     .then(response => { // handle success
                         response.data.forEach((post) => {
                             post.userName = ''
@@ -70,7 +80,9 @@
                         this.usersUpdate()
                     })
                     .catch(e => { // handle error
-                        this.errors.push(e)
+                        if (!axios.isCancel(e)) {
+                            this.errors.push(`ERROR while get Posts<br>Message: ${e.message}`)
+                        }
                     })
                     .then(() => { // always executed
                         // stop waiting
@@ -78,20 +90,35 @@
                     })
             },
 
+            clear () {
+                this.posts = []
+                this.users = []
+                this.axiosTokenSources.forEach((source) => {
+                    source.cancel()
+                })
+            },
+
             usersUpdate () {
                 this.posts.forEach((post) => {
                     if (post.userId) {
                         let randomValue = Math.random()
+                        let url = `https://jsonplaceholder.typicode.com/users/${post.userId}?rand=${randomValue}`
+                        let CancelToken = axios.CancelToken
+                        let source = CancelToken.source()
+                        this.axiosTokenSources.push(source)
 
                         // start waiting
                         this.$wait.start(`user.${post.userId}-${randomValue}`)
 
-                        axios.get(`https://jsonplaceholder.typicode.com/users/${post.userId}?rand=${randomValue}`)
+                        axios.get(url, {cancelToken: source.token})
                             .then(response => { // handle success
                                 post.userName = response.data.name
+                                this.users.push(response.data)
                             })
                             .catch(e => { // handle error
-                                this.errors.push(`ERROR while get User (id: ${post.userId})<br>Message: ${e.message}`)
+                                if (!axios.isCancel(e)) {
+                                    this.errors.push(`ERROR while get User (id: ${post.userId})<br>Message: ${e.message}`)
+                                }
                             })
                             .then(() => { // always executed
                                 // stop waiting
@@ -100,6 +127,11 @@
                     }
                 })
             }
+        },
+
+        beforeRouteLeave (to, from, next) {
+            this.clear()
+            next()
         }
     }
 </script>

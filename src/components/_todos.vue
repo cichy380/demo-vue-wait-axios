@@ -73,7 +73,9 @@
                         this.usersUpdate()
                     })
                     .catch(e => { // handle error
-                        this.errors.push(e)
+                        if (!axios.isCancel(e)) {
+                            this.errors.push(`ERROR while get Todos<br>Message: ${e.message}`)
+                        }
                     })
                     .then(() => { // always executed
                         // stop waiting
@@ -104,7 +106,7 @@
                         axios.get(url, {cancelToken: source.token})
                             .then(response => { // handle success
                                 item.userName = response.data.name
-                                this.users.push(item)
+                                this.users.push(response.data)
                             })
                             .catch(e => { // handle error
                                 if (!axios.isCancel(e)) {
