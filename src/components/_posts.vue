@@ -18,6 +18,14 @@
             </template>
         </v-wait>
 
+        <v-wait for="comments.*">
+            <template slot="waiting">
+                <p class="color-animation">
+                    Loading comments ({{ comments.length }} items)...
+                </p>
+            </template>
+        </v-wait>
+
         <div v-for="error in errors" :key="error" class="alert alert-danger mb-1">{{ error }}</div>
 
         <p v-show="!$wait.is('posts')">
@@ -34,9 +42,21 @@
                     <h5 class="mb-1">{{ post.title }}</h5>
                 </div>
                 <p class="mb-1">{{ post.body }}</p>
-                <small>
-                    Author: {{ post.userName }} <em v-if="!post.userName" class="color-animation">loading...</em>
-                </small>
+                <section class="small">
+                    <p class="mb-1">
+                        <strong>Comments</strong>
+                        <span class="text-muted">({{ post.comments.length }})</span>
+                    </p>
+                    <div class="color-animation" v-if="post.comments.length === 0">Loading comments...</div>
+                    <div class="list-group">
+                        <div v-for="comment in post.comments"
+                             :key="comment.id"
+                             class="list-group-item flex-column align-items-start">
+                            {{ comment.body }}
+                            <div class="text-muted">~ {{ comment.email }}</div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </main>
@@ -45,11 +65,14 @@
 <script>
     import axios from 'axios'
 
+    const postsUrl = 'https://jsonplaceholder.typicode.com/posts'
+
     export default {
         data () {
             return {
                 posts: [],
                 users: [],
+                comments: [],
                 errors: [],
                 axiosTokenSources: []
             }
@@ -63,7 +86,6 @@
             // Fetches all posts
             getAllPosts () {
                 let randomValue = Math.random()
-                let url = `https://jsonplaceholder.typicode.com/posts?rand=${randomValue}`
                 let CancelToken = axios.CancelToken
                 let source = CancelToken.source()
                 this.axiosTokenSources.push(source)
@@ -71,13 +93,14 @@
                 // start waiting
                 this.$wait.start('posts')
 
-                axios.get(url, {cancelToken: source.token})
+                axios.get(`${postsUrl}?rand=${randomValue}`, {cancelToken: source.token})
                     .then(response => { // handle success
                         response.data.forEach((post) => {
                             post.userName = ''
+                            post.comments = []
                             this.posts.push(post)
                         })
-                        this.usersUpdate()
+                        this.getComments()
                     })
                     .catch(e => { // handle error
                         if (!axios.isCancel(e)) {
@@ -92,37 +115,35 @@
 
             clear () {
                 this.posts = []
-                this.users = []
+                this.comments = []
                 this.axiosTokenSources.forEach((source) => {
                     source.cancel()
                 })
             },
 
-            usersUpdate () {
+            getComments () {
                 this.posts.forEach((post) => {
                     if (post.userId) {
-                        let randomValue = Math.random()
-                        let url = `https://jsonplaceholder.typicode.com/users/${post.userId}?rand=${randomValue}`
                         let CancelToken = axios.CancelToken
                         let source = CancelToken.source()
                         this.axiosTokenSources.push(source)
 
                         // start waiting
-                        this.$wait.start(`user.${post.userId}-${randomValue}`)
+                        this.$wait.start(`comments.post-${post.id}`)
 
-                        axios.get(url, {cancelToken: source.token})
+                        axios.get(`${postsUrl}/${post.id}/comments?rand=${Math.random()}`, {cancelToken: source.token})
                             .then(response => { // handle success
-                                post.userName = response.data.name
-                                this.users.push(response.data)
+                                post.comments = response.data
+                                response.data.forEach((comment) => this.comments.push(comment))
                             })
                             .catch(e => { // handle error
                                 if (!axios.isCancel(e)) {
-                                    this.errors.push(`ERROR while get User (id: ${post.userId})<br>Message: ${e.message}`)
+                                    this.errors.push(`ERROR while get Comments (postId: ${post.id}). Message: ${e.message}`)
                                 }
                             })
                             .then(() => { // always executed
                                 // stop waiting
-                                this.$wait.end(`user.${post.userId}-${randomValue}`)
+                                this.$wait.end(`comments.post-${post.id}`)
                             })
                     }
                 })
