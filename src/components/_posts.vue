@@ -10,14 +10,6 @@
             </template>
         </v-wait>
 
-        <v-wait for="user.*">
-            <template slot="waiting">
-                <p class="color-animation">
-                    Loading users ({{ users.length }} items)...
-                </p>
-            </template>
-        </v-wait>
-
         <v-wait for="comments.*">
             <template slot="waiting">
                 <p class="color-animation">
@@ -30,6 +22,9 @@
 
         <p v-show="!$wait.is('posts')">
             <button v-if="posts.length === 0" @click="getAllPosts" class="btn btn-primary">Get posts</button>
+            <button v-if="posts.length && comments.length === 0" @click="getAllComments" class="btn btn-primary">
+                Show all comments
+            </button>
             <button v-if="posts.length" @click="clear" class="btn btn-danger">Remove posts</button>
         </p>
 
@@ -42,13 +37,16 @@
                     <h5 class="mb-1">{{ post.title }}</h5>
                 </div>
                 <p class="mb-1">{{ post.body }}</p>
-                <section class="small">
+                <section>
                     <p class="mb-1">
                         <strong>Comments</strong>
-                        <span class="text-muted">({{ post.comments.length }})</span>
+                        <span class="text-muted" v-show="post.comments.length">({{ post.comments.length }})</span>
+                        <button @click="getComments(post)"
+                                v-if="post.comments.length === 0"
+                                class="btn btn-outline-secondary btn-sm ml-1">show</button>
                     </p>
-                    <div class="color-animation" v-if="post.comments.length === 0">Loading comments...</div>
-                    <div class="list-group">
+                    <div class="color-animation" v-if="$wait.is('comments.post-' + post.id)">Loading comments...</div>
+                    <div class="list-group small">
                         <div v-for="comment in post.comments"
                              :key="comment.id"
                              class="list-group-item flex-column align-items-start">
@@ -71,7 +69,6 @@
         data () {
             return {
                 posts: [],
-                users: [],
                 comments: [],
                 errors: [],
                 axiosTokenSources: []
@@ -96,15 +93,13 @@
                 axios.get(`${postsUrl}?rand=${randomValue}`, {cancelToken: source.token})
                     .then(response => { // handle success
                         response.data.forEach((post) => {
-                            post.userName = ''
                             post.comments = []
                             this.posts.push(post)
                         })
-                        this.getComments()
                     })
                     .catch(e => { // handle error
                         if (!axios.isCancel(e)) {
-                            this.errors.push(`ERROR while get Posts<br>Message: ${e.message}`)
+                            this.errors.push(`ERROR while get Posts. Message: ${e.message}`)
                         }
                     })
                     .then(() => { // always executed
@@ -121,30 +116,34 @@
                 })
             },
 
-            getComments () {
+            getComments (post) {
+                let CancelToken = axios.CancelToken
+                let source = CancelToken.source()
+                this.axiosTokenSources.push(source)
+
+                // start waiting
+                this.$wait.start(`comments.post-${post.id}`)
+
+                axios.get(`${postsUrl}/${post.id}/comments?rand=${Math.random()}`, {cancelToken: source.token})
+                    .then(response => { // handle success
+                        post.comments = response.data
+                        response.data.forEach((comment) => this.comments.push(comment))
+                    })
+                    .catch(e => { // handle error
+                        if (!axios.isCancel(e)) {
+                            this.errors.push(`ERROR while get Comments (postId: ${post.id}). Message: ${e.message}`)
+                        }
+                    })
+                    .then(() => { // always executed
+                        // stop waiting
+                        this.$wait.end(`comments.post-${post.id}`)
+                    })
+            },
+
+            getAllComments () {
                 this.posts.forEach((post) => {
-                    if (post.userId) {
-                        let CancelToken = axios.CancelToken
-                        let source = CancelToken.source()
-                        this.axiosTokenSources.push(source)
-
-                        // start waiting
-                        this.$wait.start(`comments.post-${post.id}`)
-
-                        axios.get(`${postsUrl}/${post.id}/comments?rand=${Math.random()}`, {cancelToken: source.token})
-                            .then(response => { // handle success
-                                post.comments = response.data
-                                response.data.forEach((comment) => this.comments.push(comment))
-                            })
-                            .catch(e => { // handle error
-                                if (!axios.isCancel(e)) {
-                                    this.errors.push(`ERROR while get Comments (postId: ${post.id}). Message: ${e.message}`)
-                                }
-                            })
-                            .then(() => { // always executed
-                                // stop waiting
-                                this.$wait.end(`comments.post-${post.id}`)
-                            })
+                    if (post.id) {
+                        this.getComments(post)
                     }
                 })
             }
