@@ -5,8 +5,10 @@ Testing and Prototyping Serving is delivered by JSONPlaceholder.
 
 ## Tech stack
 
+ * [Vue](https://vuejs.org/) - progressive JavaScript framework
  * **[vue-wait](https://github.com/f/vue-wait)** - complex Loader and Progress Management for Vue Applications
- * [axios](https://github.com/axios/axios) - promise based HTTP client
+ * **[axios](https://github.com/axios/axios)** - promise based HTTP client
+ * [Vue Router](https://router.vuejs.org/) - official router for Vue.js
  * [JSONPlaceholder](https://jsonplaceholder.typicode.com/) - fake Online REST API for Testing and Prototyping
  * [vue-webpack-boilerplate](https://github.com/vuejs-templates/webpack) - template for vue-cli
  * [Bootstrap](https://getbootstrap.com/) - front-end component library
