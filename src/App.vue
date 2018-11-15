@@ -10,6 +10,14 @@
       </div>
     </header>
 
+    <v-wait for="loadingdata.*">
+      <template slot="waiting">
+        <div class="floating-message floating-message--animation">
+          Loading data...
+        </div>
+      </template>
+    </v-wait>
+
     <router-view></router-view>
 
     <footer class="mastfoot mt-4 text-center">

@@ -2,7 +2,7 @@
     <main role="main" class="inner mb-auto bg-light text-dark shadow-none rounded p-3">
         <h3 class="mb-4">Posts <small class="text-muted tiny">({{ posts.length }} items)</small></h3>
 
-        <v-wait for="posts">
+        <v-wait for="loadingdata.posts">
             <template slot="waiting">
                 <p class="color-animation">
                     Loading posts...
@@ -10,7 +10,7 @@
             </template>
         </v-wait>
 
-        <v-wait for="comments.*">
+        <v-wait for="loadingdata.comments.*">
             <template slot="waiting">
                 <p class="color-animation">
                     Loading comments ({{ comments.length }} items)...
@@ -18,7 +18,7 @@
             </template>
         </v-wait>
 
-        <div v-for="error in errors" :key="error" class="alert alert-danger mb-1">{{ error }}</div>
+        <div v-for="error in errors" :key="error" class="alert alert-danger mb-4">{{ error }}</div>
 
         <p v-show="!$wait.any">
             <button v-if="posts.length === 0" @click="getAllPosts" class="btn btn-primary">
@@ -55,7 +55,9 @@
                                 v-if="post.comments.length === 0"
                                 class="btn btn-outline-secondary btn-sm ml-1">show</button>
                     </p>
-                    <div class="color-animation" v-if="$wait.waiting('comments.post-' + post.id)">Loading comments...</div>
+                    <div class="color-animation" v-if="$wait.waiting(`loadingdata.comments.post-${post.id}`)">
+                        Loading comments...
+                    </div>
                     <div class="list-group small">
                         <div v-for="comment in post.comments"
                              :key="comment.id"
@@ -98,7 +100,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start('posts')
+                this.$wait.start('loadingdata.posts')
 
                 axios.get(`${postsUrl}?rand=${randomValue}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -114,7 +116,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end('posts')
+                        this.$wait.end('loadingdata.posts')
                     })
             },
 
@@ -136,7 +138,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start(`comments.post-${post.id}`)
+                this.$wait.start(`loadingdata.comments.post-${post.id}`)
 
                 axios.get(`${postsUrl}/${post.id}/comments?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -150,7 +152,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end(`comments.post-${post.id}`)
+                        this.$wait.end(`loadingdata.comments.post-${post.id}`)
                     })
             },
 
