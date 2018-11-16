@@ -6,6 +6,7 @@
         <nav class="nav nav-masthead justify-content-center">
           <router-link to="/posts" class="nav-item nav-link">Posts</router-link>
           <router-link to="/todos" class="nav-item nav-link">Todos</router-link>
+          <router-link to="/albums" class="nav-item nav-link">Albums</router-link>
         </nav>
       </div>
     </header>
