@@ -2,7 +2,7 @@
     <main role="main" class="inner mb-auto bg-light text-dark shadow-none rounded p-3">
         <h3 class="mb-4">Photo Albums <small class="text-muted tiny">({{ albums.length }} items)</small></h3>
 
-        <v-wait for="loadingdata.albums">
+        <v-wait for="loading.albums">
             <template slot="waiting">
                 <p class="color-animation">
                     Loading albums...
@@ -10,18 +10,18 @@
             </template>
         </v-wait>
 
-        <v-wait for="loadingdata.photos.*">
+        <v-wait for="loading.photos.*">
             <template slot="waiting">
                 <p class="color-animation">
-                    Loading photos info ({{ photos.length }} items)...
+                    Loading photo infos ({{ photos.length }} items)...
                 </p>
             </template>
         </v-wait>
 
-        <v-wait for="loadingdata.photo-*">
+        <v-wait for="loading.photo-*">
             <template slot="waiting">
                 <p class="color-animation">
-                    Loading graphic file ({{ photoGraphicFiles.length }} items)...
+                    Loading graphic files ({{ photoGraphicFiles.length }} items)...
                 </p>
             </template>
         </v-wait>
@@ -57,7 +57,7 @@
                             v-if="album.photos.length === 0"
                             class="btn btn-outline-secondary btn-sm">Show photos</button>
                 </div>
-                <div class="color-animation" v-if="$wait.waiting(`loadingdata.photos.album-${album.id}`)">
+                <div class="color-animation" v-if="$wait.waiting(`loading.photos.album-${album.id}`)">
                     Loading photos...
                 </div>
                 <div class="row">
@@ -68,7 +68,7 @@
                                  @load="loaded(photo)"
                                  class="img-fluid" />
                         </transition>
-                        <div class="color-animation" v-if="$wait.waiting(`loadingdata.photo-${photo.id}`)">
+                        <div class="color-animation" v-if="$wait.waiting(`loading.photo-${photo.id}`)">
                             Loading photo image...
                         </div>
                         <figcaption class="small">{{ photo.title }}</figcaption>
@@ -108,7 +108,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start('loadingdata.albums')
+                this.$wait.start('loading.albums')
 
                 axios.get(`${albumsUrl}?rand=${randomValue}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -124,7 +124,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end('loadingdata.albums')
+                        this.$wait.end('loading.albums')
                     })
             },
 
@@ -147,7 +147,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start(`loadingdata.photos.album-${album.id}`)
+                this.$wait.start(`loading.photos.album-${album.id}`)
 
                 axios.get(`${albumsUrl}/${album.id}/photos?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -155,7 +155,7 @@
                             Object.assign(photo, {open: false, loaded: false})
                             this.photos.push(photo) // all photos (for counter)
                             album.photos.push(photo)
-                            this.$wait.start(`loadingdata.photo-${photo.id}`)
+                            this.$wait.start(`loading.photo-${photo.id}`)
                         })
                     })
                     .catch(e => { // handle error
@@ -165,7 +165,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end(`loadingdata.photos.album-${album.id}`)
+                        this.$wait.end(`loading.photos.album-${album.id}`)
                     })
             },
 
@@ -178,7 +178,7 @@
             },
 
             loaded (img) {
-                this.$wait.end(`loadingdata.photo-${img.id}`)
+                this.$wait.end(`loading.photo-${img.id}`)
                 this.photoGraphicFiles.push(img) // all photo image files (for counter)
                 img.loaded = true
             }

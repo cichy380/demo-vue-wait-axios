@@ -11,7 +11,7 @@
       </div>
     </header>
 
-    <v-wait for="loadingdata.*">
+    <v-wait for="loading.*">
       <template slot="waiting">
         <div class="floating-message floating-message--animation">
           Loading data...

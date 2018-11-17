@@ -2,7 +2,7 @@
     <main role="main" class="inner mb-auto bg-light text-dark shadow-none rounded p-3">
         <h3 class="mb-4">Todo list <small class="text-muted tiny">({{ todos.length }} items)</small></h3>
 
-        <v-wait for="loadingdata.todos">
+        <v-wait for="loading.todos">
             <template slot="waiting">
                 <p class="color-animation">
                     Loading todo list...
@@ -10,7 +10,7 @@
             </template>
         </v-wait>
 
-        <v-wait for="loadingdata.user.*">
+        <v-wait for="loading.user.*">
             <template slot="waiting">
                 <p class="color-animation">
                     Loading users ({{ users.length }} items)...
@@ -39,7 +39,7 @@
                 <strong>{{ item.title }}</strong><br>
                 <small>
                     User: {{ item.userName }}
-                    <em v-if="$wait.waiting(`loadingdata.user.todo-${item.id}`)" class="color-animation">loading...</em>
+                    <em v-if="$wait.waiting(`loading.user.todo-${item.id}`)" class="color-animation">loading...</em>
                 </small>
             </div>
         </div>
@@ -70,7 +70,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start('loadingdata.todos')
+                this.$wait.start('loading.todos')
 
                 axios.get(`${todosUrl}?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -87,7 +87,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end('loadingdata.todos')
+                        this.$wait.end('loading.todos')
                     })
             },
 
@@ -109,7 +109,7 @@
                 this.axiosTokenSources.push(source)
 
                 // start waiting
-                this.$wait.start(`loadingdata.user.todo-${todo.id}`)
+                this.$wait.start(`loading.user.todo-${todo.id}`)
 
                 axios.get(`${usersUrl}/${todo.userId}?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
@@ -123,7 +123,7 @@
                     })
                     .then(() => { // always executed
                         // stop waiting
-                        this.$wait.end(`loadingdata.user.todo-${todo.id}`)
+                        this.$wait.end(`loading.user.todo-${todo.id}`)
                     })
             },
 
