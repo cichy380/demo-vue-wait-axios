@@ -13,7 +13,15 @@
         <v-wait for="loadingdata.photos.*">
             <template slot="waiting">
                 <p class="color-animation">
-                    Loading photos ({{ photos.length }} items)...
+                    Loading photos info ({{ photos.length }} items)...
+                </p>
+            </template>
+        </v-wait>
+
+        <v-wait for="loadingdata.photo-*">
+            <template slot="waiting">
+                <p class="color-animation">
+                    Loading graphic file ({{ photoGraphicFiles.length }} items)...
                 </p>
             </template>
         </v-wait>
@@ -53,9 +61,17 @@
                     Loading photos...
                 </div>
                 <div class="row">
-                    <figure class="col-md-4" v-for="photo in album.photos" :key="photo.id">
-                        <img :src="photo.thumbnailUrl">
-                        <figcaption>{{ photo.title }}</figcaption>
+                    <figure class="col-sm-4" v-for="photo in album.photos" :key="photo.id">
+                        <transition name="fade">
+                            <img :src="photo.thumbnailUrl"
+                                 v-show="photo.loaded"
+                                 @load="loaded(photo)"
+                                 class="img-fluid" />
+                        </transition>
+                        <div class="color-animation" v-if="$wait.waiting(`loadingdata.photo-${photo.id}`)">
+                            Loading photo image...
+                        </div>
+                        <figcaption class="small">{{ photo.title }}</figcaption>
                     </figure>
                 </div>
             </section>
@@ -73,6 +89,7 @@
             return {
                 albums: [],
                 photos: [],
+                photoGraphicFiles: [],
                 errors: [],
                 axiosTokenSources: []
             }
@@ -114,6 +131,7 @@
             clear () {
                 this.albums = []
                 this.photos = []
+                this.photoGraphicFiles = []
                 this.cancel()
             },
 
@@ -131,10 +149,14 @@
                 // start waiting
                 this.$wait.start(`loadingdata.photos.album-${album.id}`)
 
-                axios.get(`${albumsUrl}/${album.id}/photos?rand=${Math.random()}`, {responseType: 'stream', cancelToken: source.token})
+                axios.get(`${albumsUrl}/${album.id}/photos?rand=${Math.random()}`, {cancelToken: source.token})
                     .then(response => { // handle success
-                        album.photos = response.data
-                        response.data.forEach((photo) => this.photos.push(photo))
+                        response.data.forEach((photo) => {
+                            Object.assign(photo, {open: false, loaded: false})
+                            this.photos.push(photo) // all photos (for counter)
+                            album.photos.push(photo)
+                            this.$wait.start(`loadingdata.photo-${photo.id}`)
+                        })
                     })
                     .catch(e => { // handle error
                         if (!axios.isCancel(e)) {
@@ -153,6 +175,12 @@
                         this.getPhotos(album)
                     }
                 })
+            },
+
+            loaded (img) {
+                this.$wait.end(`loadingdata.photo-${img.id}`)
+                this.photoGraphicFiles.push(img) // all photo image files (for counter)
+                img.loaded = true
             }
         },
 
@@ -162,3 +190,12 @@
         }
     }
 </script>
+
+<style scoped>
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity .5s;
+    }
+    .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+        opacity: 0;
+    }
+</style>
