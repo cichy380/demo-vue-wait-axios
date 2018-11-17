@@ -1,9 +1,9 @@
 <template>
     <main role="main" class="inner my-auto text-center">
-        <h1 class="cover-heading">vue-wait and axios</h1>
-        <p class="lead">Sample usage of Multiple Process Loader Management for Vue and promise based HTTP client. Online REST API for Testing and Prototyping Serving is delivered by JSONPlaceholder.</p>
+        <h1 class="cover-heading"><strong>vue-wait</strong> + <strong>axios</strong></h1>
+        <p class="lead">Example of usage Multiple Process Loader Management for Vue/Router and promise based HTTP client. Online REST API for Testing and Prototyping Serving is delivered by JSONPlaceholder.</p>
         <p class="lead">
-            <a href="https://f.github.io/vue-wait/" class="btn btn-lg btn-secondary">Learn more</a>
+            <a href="https://github.com/cichy380/demo-vue-wait-axios" class="btn btn-lg btn-secondary" target="_blank">Github</a>
         </p>
     </main>
 </template>
