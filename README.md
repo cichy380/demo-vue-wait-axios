@@ -1,7 +1,9 @@
-# Demo of Loaders usage based on vue-wait
+# Demo of usage Loaders based on vue-wait
 
 Examples of usage Multiple Loader Management for Vue with Router and promise based HTTP client. Online REST API for 
 Testing and Prototyping Serving is delivered by JSONPlaceholder.
+
+**Live demo**: http://example.silversite.pl/demo-vue-wait-axios/
 
 ## Tech stack
 
