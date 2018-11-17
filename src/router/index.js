@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HomeView from '../components/_index'
-import PostsView from '../components/_posts'
-import TodosView from '../components/_todos'
+import HomeView from '../components/Homepage'
+import PostsView from '../components/Posts'
+import TodosView from '../components/Todos'
 import AlbumsView from '../components/Albums'
 
 Vue.use(Router)
